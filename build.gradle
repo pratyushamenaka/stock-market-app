@@ -1,0 +1,113 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.5.20.RELEASE'
+        classpath rootProject.files('libs/ojdbc7.jar')
+    }
+}
+
+group 'com.crypto.currency'
+version '1.0-SNAPSHOT'
+
+
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'groovy'
+apply plugin: 'checkstyle'
+apply plugin: 'distribution'
+
+
+
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+
+
+dependencies {
+
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    // getters, setters, equals and hashcode annotations
+    compile 'org.projectlombok:lombok:1.16.16'
+    // Swagger Annotations
+    compile 'io.springfox:springfox-swagger2:2.9.2'
+    compile 'io.springfox:springfox-swagger-ui:2.9.2'
+    compile 'org.codehaus.groovy:groovy-all:2.4.3'
+    compile 'org.slf4j:slf4j-api:1.7.12'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'org.springframework.boot:spring-boot-starter-test'
+    checkstyle 'com.puppycrawl.tools:checkstyle:5.9'
+    compile files('libs/ojdbc7.jar')
+    compile 'org.spockframework:spock-core:1.1-groovy-2.4'
+    compile 'org.spockframework:spock-spring:1.1-groovy-2.4'
+    compile 'cglib:cglib-nodep:3.2.4'
+    // Spock
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
+    testCompile 'org.spockframework:spock-spring:1.1-groovy-2.4'
+    testRuntime 'cglib:cglib-nodep:3.2.4'
+}
+
+bootRepackage {
+    withJarTask = jar
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+    test {
+        groovy {
+            srcDirs = ['src/test/groovy']
+        }
+        resources {
+            srcDir 'src/test/resources'
+        }
+    }
+}
+
+
+
+// -------------------------------------
+// BOOT RUN
+// -------------------------------------
+
+// enable profile to be specified for bootRun
+tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+    final localProp = "file:../src/main/resources/application.properties"
+    println "Loading local properties file from ${new File(localProp).absolutePath}"
+    systemProperty 'spring.profiles.active', System.getProperty('spring.profiles.active', project.springProfile)
+    jvmArgs = ["-Xmx2g", "-XX:MaxPermSize=1g", "-Xdebug",
+               "-XX:+CMSClassUnloadingEnabled", "-XX:+CMSPermGenSweepingEnabled",
+               "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"]
+}
+
+jar {
+    archiveName "stock-market-app.jar"
+}
+
+// -------------------------------------
+// CHECKSTYLE
+// -------------------------------------
+
+def checkstyleConfigDir = new File(rootDir, 'config/checkstyle')
+checkstyle {
+    configFile = new File(checkstyleConfigDir, "checkstyle.xml")
+    configProperties.checkstyleConfigDir = checkstyleConfigDir
+    toolVersion = "6.5"
+}
+
+
+
